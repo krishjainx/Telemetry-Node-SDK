@@ -1,3 +1,13 @@
+/*
+ * telemetryNode.h v1.0
+ * Created: 7/10/18 by Andrew Gutierrez
+ * Modified: 7/15/18
+ *
+ * Arduino library for telemetry node for URSS. Library is deisnged to
+ * Serve as the serial interface between the various "node" boards in the
+ * boat and the teleetry server that collects all the data.
+ */
+
 #ifndef TELEMETRY_NODE_H
 #define TELEMETRY_NODE_H
 
