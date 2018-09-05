@@ -1,10 +1,6 @@
 TelemetryNode KEYWORD1
-getDeviceID KEYWORD2
-getPacket KEYWORD2
-getByteAt KEYWORD2
-generateLastByte KEYWORD2
-checkSum KEYWORD2
-setByte KEYWORD2
-setPacket KEYWORD2
-sendPacket KEYWORD2
-intervalSend KEYWORD2
+streamSerial  KEYWORD2
+begin KEYWORD2
+setTransmissionRate KEYWORD2
+getChecksum KEYWORD2
+DeviceID  KEYWORD2
