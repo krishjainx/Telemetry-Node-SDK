@@ -10,6 +10,8 @@
 
 #ifndef TELEMETRY_NODE_H
 #define TELEMETRY_NODE_H
+#define byte unsigned char
+#include <stdlib.h>
 
 #include "Arduino.h"
 
@@ -22,18 +24,38 @@ enum DeviceID {
   DEVICE_THROTTLE
 };
 
-class TelemetryNode{
+// Make a struct so that you don't have to worry about packet size
+
+struct packet {
+  byte device_id;
+  unsigned long data;
+  byte packet_n;
+  byte checksum;
+};
+
+struct packet *packet_new (byte device_id,
+    unsigned long data,
+    byte packet_n){
+  struct packet *p = (struct packet*)malloc(sizeof(struct packet));
+  p->device_id = device_id;
+  p->data = data;
+  p->packet_n = packet_n;
+  p->checksum = 0xFF -device_id + data % 0xFF + packet_n;
+  return p;
+}
+
+virtual class TelemetryNode{
   private:
     byte deviceID;
-    void pack(byte* packet);
     HardwareSerial *_serial;
-    unsigned long timeDelay=1000;
-    static const byte PACKET_SIZE=16;
+    unsigned long timeDelay;
+    virtual void pack(struct packet *p);
   public:
-    TelemetryNode(byte deviceID,HardwareSerial *serialPort); //Constructor
+    TelemetryNode(byte device_ID,HardwareSerial *serialPort)
+      : deviceID (device_ID), _serial (serialPort){};
     void streamSerial();
     void begin(long baudrate);
     void setTransmissionRate(float frq);
-    byte getChecksum(byte* packet);
 };
+
 #endif
