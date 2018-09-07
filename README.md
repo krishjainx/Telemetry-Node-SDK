@@ -38,6 +38,8 @@ data from each board and the packet number will be 0x00 but in some circumstance
 more than one transmission may be required. In these cases, the packet number will
 be used to identify which data packet is being sent to help with serial parsing.
 
+___
+
 ## Device packing
 Each of the system boards/nodes will be discussed here with the types of data that will sent
 and the packing used to send the data.
