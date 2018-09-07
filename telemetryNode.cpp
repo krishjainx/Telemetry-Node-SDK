@@ -9,7 +9,6 @@
  */
 
 #include "telemetryNode.h"
-#include <math.h>
 
 void TelemetryNode::begin(long baudrate){
   _serial->begin(baudrate);
@@ -20,27 +19,41 @@ void TelemetryNode::setTransmissionRate(float frq){
 }
 
 void TelemetryNode::streamSerial(){
-  byte ndx=0;
-  unsigned long lastTransmission=0;
-  bool isSending=false;
-  struct packet *p= packet_new(DEVICE_ALLTRAX, 0xBEEF, 0x8);
+  byte index = 0;
+  unsigned long lastTransmission = 0;
+  bool isSending = false;
   unsigned long currentTime = millis();
 
   if(isSending){
-    _serial->write((byte*)p, sizeof(packet));
-    // don't know why you don't send the last byte
-    // send i
-    /*
-    if(ndx>(PACKET_SIZE-2)){
-      ndx=0;
-      isSending=false;
-    }else{
-      ndx++;
-    }
-    */
-  } else if (abs(currentTime-lastTransmission)>=timeDelay){
+    if (isSending=(index++ < sizeof(packet)))
+      _serial->write(((byte*)p)[index]);
+  } else if (currentTime-lastTransmission >= timeDelay){
     isSending=true;
-    pack(p);
+    pack(&current_pack);
     lastTransmission=currentTime;
   }
+}
+
+void AlltraxNode::pack(struct packet *p){
+  p->device_id = getDeviceID();
+  p->packet_n = 0x0; // don't let this last
+  float* point = (float*)(p->data);
+  *(point++)=diodeTemp;
+  *(point++)=inVoltage;
+  *(point++)=outCurrent;
+  *(point++)=inCurrent;
+  byte *point2 = (byte*)(point);
+  *(point2++) = dutyCycle;
+  p->checksum = p->packet_n;
+  for (byte i = 0; i < 13; ++i)
+    p->checksum += p->data[i];
+}
+
+void AlltraxNode::readSerial(){
+  // read some shit and provide values for vars
+  diodeTemp = 5.09;
+  inVoltage = 5.09;
+  outCurrent = 5.09;
+  inCurrent = 5.09;
+  dutyCycle = 0xD;
 }
