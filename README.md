@@ -42,7 +42,7 @@ be used to identify which data packet is being sent to help with serial parsing.
 Each of the system boards/nodes will be discussed here with the types of data that will sent
 and the packing used to send the data.
 
-### DEVICE_ALLTRAX
+### DEVICE_ALLTRAX (0x00)
 The following data points will be sent from the Alltrax controller:
 #### Controller temp (diodeTemp)
 - Description: Internal temperature of the controller in deg C
@@ -97,3 +97,91 @@ The following data points will be sent from the Alltrax controller:
 - Byte 11-13: unused (0x00)
 - Byte 14: 0x00  (packet #)
 - Byte 15: 8-bit checksum
+
+___
+
+### DEVICE_VESC (0x01)
+The following data points will be sent from the VESC:
+#### Controller Temp (fetTemp)
+- Description: average temp of the MOSFETs on the controller in deg C
+- Size: 2 bytes _fetTemp=(fetTempH<<8)&fetTempL_
+- Encoding: (fetTemp-0x0C)(.48828125)
+
+#### Input Voltage (inVoltage)
+- Description: input voltage to controller
+- Size: 2 bytes _inVoltage=(inVoltageH<<8)&inVoltageL_
+- Encoding: .1025 V/bit
+
+#### Output Current (outCurrent)
+- Description: motor coil current (A)
+- Size: 2 bytes _outCurrent=(outCurrentH<<8)&outCurrentL_
+- Encoding: 1A/bit
+
+#### Input Current (inCurrent)
+- Description: input current from batteries
+- Size: 2 bytes _inCurrent=(inCurrentH<<8)&inCurrentL_
+- Encoding: 1A/Bit
+
+#### Duty Cycle (dutyCycle)
+- Description: duty cycle (%) used by the motor
+- Size: 1 byte
+- Encoding: percent mapped to 0-255
+
+#### Error Code (faultCode)
+- Description: each bit is a flag for an VESC fault code.
+- Size: 1 byte
+- Encoding:
+  - Bit 0: OVER_VOLTAGE
+  - Bit 1: UNDER_VOLTAGE
+  - Bit 2: DRV_FAULT
+  - Bit 3: OVER_CURRENT
+  - Bit 4: OVER_TEMP_FET
+  - Bit 5: OVER_TEMP_MOTOR
+  - Bit 6: unused
+  - Bit 7: unused
+
+#### VESC packing
+- Byte 0: DeviceID (0x01)
+- Byte 1: fetTempH
+- Byte 2: fetTempL
+- Byte 3: inVoltageH
+- Byte 4: inVoltageL
+- Byte 5: outCurrentH
+- Byte 6: outCurrentL
+- Byte 7: inCurrentH
+- Byte 8: inCurrentL
+- Byte 9: dutyCycle
+- Byte 10: faultCode
+- Byte 11-13: unused (0x00)
+- Byte 14: 0x00  (packet #)
+- Byte 15: 8-bit checksum
+___
+
+### DEVICE_MOTOR_BOARD
+Data points to be sent from the custom motor board:
+
+#### Motor Temp (motorTemp)
+- Description: Temperature of the motor in deg C (found with thermoresistor)
+- Size: 4 bytes
+- Encoding: none, standard float
+
+#### Motor RPM (motorRPM)
+- Description: RPM of the motor shaft (found with Hall-Switch)
+- Size: 4 bytes
+- Encoding: none, standard int
+
+#### Prop RPM (propRPM)
+- Description: calculated value of RPM at the prop from motorRPM and gearing
+- Size: 4 bytes
+- Encoding: none, standard int
+
+#### Motor Board packing
+- Byte 0: DeviceID (0x02)
+- Bytes 1-4: motorTemp
+- Bytes 5-8: motorRPM
+- Bytes 9-12: propRPM
+- Byte 13: unused (0x00)
+- Byte 14: 0x00  (packet #)
+- Byte 15: 8-bit checksum
+
+___
