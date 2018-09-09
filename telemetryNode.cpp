@@ -8,66 +8,89 @@
  * boat and the telemetry server that collects all the data.
  */
 
-#include <telemetryNode.h>
+#include "telemetryNode.h"
+#include <math.h>
 
-TelemetryNode::TelemetryNode(byte deviceID, HardwareSerial *serialPort){
-  this->deviceID = deviceID;
-  _serial=serialPort;
+uint8_t _checksum(struct packet *p){
+  uint8_t *p8 = (uint8_t*)p;
+  uint8_t s = 0;
+  for (p8 = (uint8_t*)p; p8 != p+1; ++p8)
+    s += *(p8++);
+  return s;
 }
 
 void TelemetryNode::begin(long baudrate){
   _serial->begin(baudrate);
- }
+}
 
- void TelemetryNode::setTransmissionRate(float frq){
-   timeDelay=(int)floor((1000/frq));
- }
+void TelemetryNode::setTransmissionRate(float frq){
+  timeDelay=(int)floor((1000/frq));
+}
 
 void TelemetryNode::streamSerial(){
-  static byte ndx=0;
-  static unsigned long lastTransmission=0;
-  static bool isSending=false;
-  static byte* packet = new byte[PACKET_SIZE]{0x00,0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x00};
+  uint8_t index = 0;
+  unsigned long lastTransmission = 0;
+  bool isSending = false;
   unsigned long currentTime = millis();
 
   if(isSending){
-    _serial->write(packet[ndx]);
-    if(ndx>(PACKET_SIZE-2)){
-      ndx=0;
-      isSending=false;
-    }else{
-      ndx++;
-    }
-  }else if(abs(currentTime-lastTransmission)>=timeDelay){
+    if (isSending = (index++ < sizeof(packet)))
+      _serial->write(((byte*)p)[index]);
+  } else if (currentTime-lastTransmission >= timeDelay){
     isSending=true;
-    pack(packet);
+    pack((void*)(&current_pack.data));
+    current_pack.device_id = getDeviceID();
+    current_pack.packet_n = 0;
+    current_pack.checksum = 0;
+    current_pack.checksum = _checksum(&current_pack);
     lastTransmission=currentTime;
   }
 }
 
-void TelemetryNode::pack(byte* packet){
-  packet[0]=deviceID;
-  switch (deviceID) {
-    case DEVICE_ALLTRAX:
-      break;
-    case DEVICE_VESC:
-      break;
-    case DEVICE_MOTOR_BOARD:
-      break;
-    case DEVICE_BATTERY_BOARD:
-      break;
-    case DEVICE_GPS_IMU:
-      break;
-    case DEVICE_THROTTLE:
-      break;
-  }
-  packet[15]=getChecksum(packet);
+void AlltraxNode::pack(void *p){
+  uint16_t* p16 = (uint16_t*)(p);
+  p16[0] = diodeTemp;
+  p16[1] = inVoltage;
+  p16[2] = outCurrent;
+  p16[3] = inCurrent;
+  uint8_t *p8 = (uint8_t*)(&p16[4]);
+  p8[0] = dutyCycle;
+  p8[1] = errorCode;
 }
 
-byte TelemetryNode::getChecksum(byte* packet){
-   byte sum=0;
-   for (size_t i = 0; i < PACKET_SIZE-1; i++) {
-     sum+=packet[i];
-   }
-   return 0xFF-sum;
+void AlltraxNode::readSerial(){
+  // read some shit and provide values for vars
+  diodeTemp = 0xDE;
+  inVoltage = 0xAD;
+  outCurrent = 0xBE;
+  inCurrent = 0xEF;
+  dutyCycle = 0xA;
+  errorCode = 0xF;
+}
+
+void VescNode::pack(void *p){
+  uint16_t *p16 = (uint16_t*)(p);
+  p16[0] = fetTemp;
+  p16[1] = inVoltage;
+  p16[2] = outCurrent;
+  p16[3] = inCurrent;
+  uint8_t *p8 = (uint8_t*)(&p16[4]);
+  p8[0] = dutyCycle;
+  p8[1] = faultCode;
+}
+
+void VescNode::readSerial(){
+  fetTemp = 0xDE;
+  inVoltage = 0xAD;
+  outCurrent = 0xBE;
+  inCurrent = 0xEF;
+  dutyCycle = 0xA;
+  faultCode = 0xF;
+}
+
+void MotorBoardNode::pack(void *p){
+  uint32_t *p32 = (uint32_t)(p);
+  p32[0] = motorTemp;
+  p32[1] = motorRPM;
+  p32[2] = propRPM;
 }
