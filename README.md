@@ -96,7 +96,7 @@ The following data points will be sent from the Alltrax controller:
 - Byte 8: inCurrentL
 - Byte 9: dutyCycle
 - Byte 10: errorCode
-- Byte 11-13: unused (0x00)
+- Byte 11-13: 0x00 (unused)
 - Byte 14: 0x00  (packet #)
 - Byte 15: 8-bit checksum
 
@@ -154,7 +154,7 @@ The following data points will be sent from the VESC:
 - Byte 8: inCurrentL
 - Byte 9: dutyCycle
 - Byte 10: faultCode
-- Byte 11-13: unused (0x00)
+- Byte 11-13: 0x00 (unused)
 - Byte 14: 0x00  (packet #)
 - Byte 15: 8-bit checksum
 ___
@@ -182,8 +182,61 @@ Data points to be sent from the custom motor board:
 - Bytes 1-4: motorTemp
 - Bytes 5-8: motorRPM
 - Bytes 9-12: propRPM
-- Byte 13: unused (0x00)
+- Byte 13: 0x00 (unused)
 - Byte 14: 0x00  (packet #)
 - Byte 15: 8-bit checksum
+
+___
+
+### DEVICE_GPS_IMU (0x04)
+Data points to be sent from the GPS board from Adafruit GPS module:
+
+#### Latitude (lat)
+- Description: signed position latitude (e=positive, w=negative)
+- Size: 4 bytes
+- Encoding: none, standard float
+
+#### Longitude (long)
+- Description: signed position longitude (n=positive, s=negative)
+- Size: 4 bytes
+- Encoding: none, standard float
+
+#### Heading Angle (heading)
+- Description: mapped angle heading (0,360) -> (0,255)
+- Size: 1 byte
+- Encoding: (0,360) -> (0,255)
+
+#### Velocity (vel)
+- Description: Velocity of the boat in knots
+- Size: 4 bytes
+- Encoding: none, standard float
+
+#### Number of Satellites (numSat)
+- Description: Number of satellites connected
+- Size: 1 byte
+- Encoding: none, standard byte
+
+#### Epoch Time (time)
+- Description: current epoch time in milliseconds
+- Size: 4 bytes
+- Encoding Standard epoch encoding
+
+#### GPS/IMU packing
+Packet 0x00:
+- Byte 0: DeviceID (0x04)
+- Bytes 1-4: lat
+- Bytes 5-8: long
+- Bytes 9-12: time
+- Byte 13: numSat
+- Byte 14: 0x00 (packet#)
+- Byte 15: 8-bit Checksum
+
+Packet 0x01:
+- Byte 0: DeviceID (0x04)
+- Bytes 1-4: vel
+- Byte 5: heading
+- Bytes 6-13: 0x00 (unused)
+- Byte 14: 0x01 (packet#)
+- Byte 15: 8-bit Checksum
 
 ___
