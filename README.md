@@ -159,7 +159,7 @@ The following data points will be sent from the VESC:
 - Byte 15: 8-bit checksum
 ___
 
-### DEVICE_MOTOR_BOARD
+### DEVICE_MOTOR_BOARD(0x02)
 Data points to be sent from the custom motor board:
 
 #### Motor Temp (motorTemp)
@@ -241,7 +241,7 @@ Packet 0x01:
 
 ___
 
-### DEVICE_THROTTLE
+### DEVICE_THROTTLE(0x05)
 Data points to be sent from the custom motor board:
 
 #### Throttle (throt)
