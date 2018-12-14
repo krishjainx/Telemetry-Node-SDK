@@ -86,14 +86,14 @@ The following data points will be sent from the Alltrax controller:
 
 #### Alltrax packing
 - Byte 0: DeviceID (0x00)
-- Byte 1: diodeTempH
-- Byte 2: diodeTempL
-- Byte 3: inVoltageH
-- Byte 4: inVoltageL
-- Byte 5: outCurrentH
-- Byte 6: outCurrentL
-- Byte 7: inCurrentH
-- Byte 8: inCurrentL
+- Byte 1: diodeTempL
+- Byte 2: diodeTempH
+- Byte 3: inVoltageL
+- Byte 4: inVoltageH
+- Byte 5: outCurrentL
+- Byte 6: outCurrentH
+- Byte 7: inCurrentL
+- Byte 8: inCurrentH
 - Byte 9: dutyCycle
 - Byte 10: errorCode
 - Byte 11-13: 0x00 (unused)
@@ -144,14 +144,14 @@ The following data points will be sent from the VESC:
 
 #### VESC packing
 - Byte 0: DeviceID (0x01)
-- Byte 1: fetTempH
-- Byte 2: fetTempL
-- Byte 3: inVoltageH
-- Byte 4: inVoltageL
-- Byte 5: outCurrentH
-- Byte 6: outCurrentL
-- Byte 7: inCurrentH
-- Byte 8: inCurrentL
+- Byte 1: fetTempL
+- Byte 2: fetTempH
+- Byte 3: inVoltageL
+- Byte 4: inVoltageH
+- Byte 5: outCurrentL
+- Byte 6: outCurrentH
+- Byte 7: inCurrentL
+- Byte 8: inCurrentH
 - Byte 9: dutyCycle
 - Byte 10: faultCode
 - Byte 11-13: 0x00 (unused)
@@ -165,12 +165,12 @@ Data points to be sent from the custom motor board:
 #### Motor Temp (motorTemp)
 - Description: Temperature of the motor in deg C (found with thermoresistor)
 - Size: 4 bytes
-- Encoding: none, standard float
+- Encoding: none, standard float (little endian)
 
 #### Motor RPM (motorRPM)
 - Description: RPM of the motor shaft (found with Hall-Switch)
 - Size: 4 bytes
-- Encoding: none, standard int
+- Encoding: none, standard int (little endian)
 
 #### Prop RPM (propRPM)
 - Description: calculated value of RPM at the prop from motorRPM and gearing
@@ -179,9 +179,9 @@ Data points to be sent from the custom motor board:
 
 #### Motor Board packing
 - Byte 0: DeviceID (0x02)
-- Bytes 1-4: motorTemp
-- Bytes 5-8: motorRPM
-- Bytes 9-12: propRPM
+- Bytes 1-4: motorTemp (little endian)
+- Bytes 5-8: motorRPM (little endian)
+- Bytes 9-12: propRPM (little endian)
 - Byte 13: 0x00 (unused)
 - Byte 14: 0x00  (packet #)
 - Byte 15: 8-bit checksum
@@ -194,38 +194,38 @@ Data points to be sent from the GPS board from Adafruit GPS module:
 #### Latitude (lat)
 - Description: signed position latitude (e=positive, w=negative)
 - Size: 4 bytes
-- Encoding: none, standard float
+- Encoding: none, standard float (little endian)
 
-#### Longitude (long)
+#### Longitude (lng)
 - Description: signed position longitude (n=positive, s=negative)
 - Size: 4 bytes
-- Encoding: none, standard float
+- Encoding: none, standard float (little endian)
 
 #### Heading Angle (heading)
 - Description: mapped angle heading (0,360) -> (0,255)
 - Size: 1 byte
 - Encoding: (0,360) -> (0,255)
 
-#### Velocity (vel)
-- Description: Velocity of the boat in knots
+#### Speed (speed)
+- Description: Speed of the boat in knots
 - Size: 4 bytes
 - Encoding: none, standard float
 
 #### Number of Satellites (numSat)
 - Description: Number of satellites connected
 - Size: 1 byte
-- Encoding: none, standard byte
+- Encoding: none, standard byte (little endian)
 
 #### Epoch Time (time)
 - Description: current epoch time in milliseconds
 - Size: 4 bytes
-- Encoding Standard epoch encoding
+- Encoding Standard epoch encoding (little endian)
 
 #### GPS/IMU packing
 Packet 0x00:
 - Byte 0: DeviceID (0x04)
 - Bytes 1-4: lat
-- Bytes 5-8: long
+- Bytes 5-8: lng
 - Bytes 9-12: time
 - Byte 13: numSat
 - Byte 14: 0x00 (packet#)
@@ -233,10 +233,26 @@ Packet 0x00:
 
 Packet 0x01:
 - Byte 0: DeviceID (0x04)
-- Bytes 1-4: vel
+- Bytes 1-4: speed
 - Byte 5: heading
 - Bytes 6-13: 0x00 (unused)
 - Byte 14: 0x01 (packet#)
 - Byte 15: 8-bit Checksum
 
 ___
+
+### DEVICE_THROTTLE
+Data points to be sent from the custom motor board:
+
+#### Throttle (throt)
+- Description: Throttle percentage
+- Size: 2 bytes
+- Encoding: throttle percent 1-2^16
+
+#### Motor Board packing
+- Byte 0: DeviceID (0x02)
+- Bytes 1: throttleL
+- Bytes 2: throttleH
+- Byte 3-13: 0x00 (unused)
+- Byte 14: 0x00  (packet #)
+- Byte 15: 8-bit checksum
