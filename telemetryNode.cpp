@@ -1,12 +1,38 @@
 /*
- * telemetryNode.cpp v1.0
- * Created: 7/10/18 by Andrew Gutierrez
- * Modified: 7/15/18
+ * telemetryNode.h v1.1
+ * Created: 7/10/18 by Andrew Gutierrez and Chris Kjellqvist
+ * Modified: 12/15/18
  *
  * Arduino library for telemetry node for URSS. Library is deisnged to
  * Serve as the serial interface between the various "node" boards in the
  * boat and the telemetry server that collects all the data.
+ *
+ * v1.0
+ * Fully functional library for telemetry streaming to
+ * Telemtry-Server-SDK. Support for the following boards:
+ *  - URSS Alltrax Controller
+ *  - URSS VESC Controller
+ *  - URSS Motor board
+ *  - URSS Battery Board
+ *  - URSS GPS/IMU Board
+ *  - URSS Throttle Board
+ *
+ * v1.1
+ * Added support for full duplex communication with heartbeat packets.
+ * Heartbeats can now send data back to the nodes with data requests.
+ * Added unpacking functions for:
+ * - URSS Alltrax Controller
+ * - URSS VESC Controller
  */
+ /*
+  * telemetryNode.cpp v1.0
+  * Created: 7/10/18 by Andrew Gutierrez
+  * Modified: 7/15/18
+  *
+  * Arduino library for telemetry node for URSS. Library is deisnged to
+  * Serve as the serial interface between the various "node" boards in the
+  * boat and the telemetry server that collects all the data.
+  */
 
  #include "telemetryNode.h"
 
@@ -18,9 +44,15 @@
    return 0xff-s;
  }
 
+ uint8_t validateChecksum(uint8_t* p){
+   uint8_t s=0;
+   for (size_t i = 0; i < 16; i++)
+     s+=p[i];
+   return s;
+ }
+
  void TelemetryNode::begin(long baudrate){
    _serial->begin(baudrate);
-   while(!connected){connect();}
  }
 
  void TelemetryNode::update(){
@@ -49,11 +81,42 @@
  }
 
  void TelemetryNode::checkHeartbeat(){
-   while (_serial->available()!=0) {
-     if(_serial->read()==CONN_HEARTBEAT){
-       sendData();
-       lastHeartbeat=millis();
-     }
+   switch (rState) {
+     case HEARTBEAT_WAITING:
+       if(_serial->available()>0){
+         uint8_t inByte = _serial->read();
+         if(inByte==CONN_HEARTBEAT){
+           hbPacket[0]=inByte;
+           lastHeartbeat=millis();
+           if(_serial->available()>=15){
+             sendData();
+             for (size_t i = 1; i < 16; i++)
+               hbPacket[i]=_serial->read();
+             if(validateChecksum(hbPacket)==0xFF){
+               unpack();
+             }
+           }else{
+             rState=HEARTBEAT_RECEIVING;
+             hbPacketTimeout=millis();
+           }
+         }
+       }
+       break;
+     case HEARTBEAT_RECEIVING:
+       if(_serial->available()>=15){
+         sendData();
+         for (size_t i = 1; i < 16; i++)
+           hbPacket[i]=_serial->read();
+         if(validateChecksum(hbPacket)==0xFF){
+           unpack();
+         }
+         rState=HEARTBEAT_WAITING;
+       }else{
+         if(millis()-hbPacketTimeout>10){
+           rState=HEARTBEAT_WAITING;
+         }
+       }
+       break;
    }
    if(millis()-lastHeartbeat>1000){connected=false;}
  }
@@ -61,14 +124,15 @@
  void TelemetryNode::connect(){
    _serial->write(CONN_INIT);
    delay(100);
-   while(_serial->available()!=0){
+   if(_serial->available()>0){
      if(_serial->read()==CONN_RESPONSE){
        _serial->write(deviceID);
        delay(100);
-       while(_serial->available()!=0){
+       if(_serial->available()>0){
          if(_serial->read()==CONN_CONFIRM){
            connected=true;
            lastHeartbeat=millis();
+           rState = HEARTBEAT_WAITING;
          }
        }
      }
@@ -104,6 +168,9 @@
    packets[0].checksum = _checksum(&packets[0]);
  }
 
+ void AlltraxNode::unpack(){
+   throt = hbPacket[2]<<8 | hbPacket[1];
+ }
 
  void VescNode::pack(void *p){
    Packet* packets = (Packet*)(p);
@@ -124,6 +191,10 @@
    packets[0].checksum = _checksum(&packets[0]);
  }
 
+ void VescNode::unpack(){
+   throt = hbPacket[2]<<8|hbPacket[1];
+ }
+
  void MotorBoardNode::pack(void *p){
    Packet* packets = (Packet*)(p);
    packets[0].startByte=0xF0;
@@ -135,6 +206,10 @@
    packets[0].packetNum=0x00;
    packets[0].checksum = 0x00;
    packets[0].checksum = _checksum(&packets[0]);
+ }
+
+ void MotorBoardNode::unpack(){
+
  }
 
  void GPSNode::pack(void *p){
@@ -168,6 +243,10 @@
    packets[1].checksum = _checksum(&packets[1]);
  }
 
+ void GPSNode::unpack(){
+
+ }
+
  void ThrottleNode::pack(void *p){
    Packet* packets = (Packet*)(p);
    packets[0].startByte=0xF0;
@@ -181,5 +260,8 @@
    p16[6] = 0x00;
    packets[0].packetNum=0x00;
    packets[0].checksum = _checksum(&packets[0]);
+ }
+
+ void ThrottleNode::unpack(){
 
  }

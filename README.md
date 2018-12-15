@@ -7,7 +7,7 @@ at 4hz. Data can be decimated on the server side so improve performance if
 needed but the devices should still send data regularly.
 
 ### Byte Breakdown
-- Byte 0: Device ID
+- Byte 0: Header (0xF0)
 - Byte 1-4: Data (1)
 - Byte 5-8: Data (2)
 - Byte 9-12: Data (3)
@@ -85,7 +85,7 @@ The following data points will be sent from the Alltrax controller:
   - Bit 7: controller in boot sequence
 
 #### Alltrax packing
-- Byte 0: DeviceID (0x00)
+- Byte 0: Header (0xF0)
 - Byte 1: diodeTempL
 - Byte 2: diodeTempH
 - Byte 3: inVoltageL
@@ -97,6 +97,14 @@ The following data points will be sent from the Alltrax controller:
 - Byte 9: dutyCycle
 - Byte 10: errorCode
 - Byte 11-13: 0x00 (unused)
+- Byte 14: 0x00  (packet #)
+- Byte 15: 8-bit checksum
+
+#### Alltrax Unpacking
+- Byte 0: Header (0x50)
+- Byte 1: throttleL
+- Byte 2: throttleH
+- Byte 3-13: 0x00 (unused)
 - Byte 14: 0x00  (packet #)
 - Byte 15: 8-bit checksum
 
@@ -143,7 +151,7 @@ The following data points will be sent from the VESC:
   - Bit 7: unused
 
 #### VESC packing
-- Byte 0: DeviceID (0x01)
+- Byte 0: Header (0xF0)
 - Byte 1: fetTempL
 - Byte 2: fetTempH
 - Byte 3: inVoltageL
@@ -155,6 +163,14 @@ The following data points will be sent from the VESC:
 - Byte 9: dutyCycle
 - Byte 10: faultCode
 - Byte 11-13: 0x00 (unused)
+- Byte 14: 0x00  (packet #)
+- Byte 15: 8-bit checksum
+
+#### VESC Unpacking
+- Byte 0: Header (0x50)
+- Byte 1: throttleL
+- Byte 2: throttleH
+- Byte 3-13: 0x00 (unused)
 - Byte 14: 0x00  (packet #)
 - Byte 15: 8-bit checksum
 ___
@@ -223,7 +239,7 @@ Data points to be sent from the GPS board from Adafruit GPS module:
 
 #### GPS/IMU packing
 Packet 0x00:
-- Byte 0: DeviceID (0x04)
+- Byte 0: Header (0xF0)
 - Bytes 1-4: lat
 - Bytes 5-8: lng
 - Bytes 9-12: time
@@ -232,7 +248,7 @@ Packet 0x00:
 - Byte 15: 8-bit Checksum
 
 Packet 0x01:
-- Byte 0: DeviceID (0x04)
+- Byte 0: Header (0xF0)
 - Bytes 1-4: speed
 - Byte 5: heading
 - Bytes 6-13: 0x00 (unused)
@@ -249,8 +265,8 @@ Data points to be sent from the custom motor board:
 - Size: 2 bytes
 - Encoding: throttle percent 1-2^16
 
-#### Motor Board packing
-- Byte 0: DeviceID (0x02)
+#### Throttle packing
+- Byte 0: Header (0xF0)
 - Bytes 1: throttleL
 - Bytes 2: throttleH
 - Byte 3-13: 0x00 (unused)

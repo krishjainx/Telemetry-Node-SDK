@@ -1,11 +1,28 @@
 /*
- * telemetryNode.h v1.0
- * Created: 7/10/18 by Andrew Gutierrez
- * Modified: 7/15/18
+ * telemetryNode.h v1.1
+ * Created: 7/10/18 by Andrew Gutierrez and Chris Kjellqvist
+ * Modified: 12/15/18
  *
  * Arduino library for telemetry node for URSS. Library is deisnged to
  * Serve as the serial interface between the various "node" boards in the
  * boat and the telemetry server that collects all the data.
+ *
+ * v1.0
+ * Fully functional library for telemetry streaming to
+ * Telemtry-Server-SDK. Support for the following boards:
+ *  - URSS Alltrax Controller
+ *  - URSS VESC Controller
+ *  - URSS Motor board
+ *  - URSS Battery Board
+ *  - URSS GPS/IMU Board
+ *  - URSS Throttle Board
+ *
+ * v1.1
+ * Added support for full duplex communication with heartbeat packets.
+ * Heartbeats can now send data back to the nodes with data requests.
+ * Added unpacking functions for:
+ * - URSS Alltrax Controller
+ * - URSS VESC Controller
  */
  #ifndef TELEMETRY_NODE_H
  #define TELEMETRY_NODE_H
@@ -28,6 +45,11 @@
    DEVICE_THROTTLE
  };
 
+ enum ReciveState {
+   HEARTBEAT_WAITING,
+   HEARTBEAT_RECEIVING
+ };
+
  class TelemetryNode{
    private:
      const uint8_t CONN_INIT = 0x69;
@@ -40,9 +62,12 @@
      Serial_ *_serial;
      bool connected;
      unsigned long lastHeartbeat;
+     unsigned long hbPacketTimeout; //for sending data back
+     ReciveState rState; //for sending data back
      Packet* currentPack;
 
      virtual void pack(void *p);
+     virtual void unpack();
      void checkHeartbeat();
      void connect();
      void sendData();
@@ -50,10 +75,13 @@
 
    public:
      TelemetryNode(uint8_t deviceID, Serial_ *serialPort)
-       : deviceID (deviceID), _serial (serialPort){
-         setPacketNum(deviceID);
-         currentPack = new Packet[numPackets];
-       };
+      : deviceID (deviceID), _serial (serialPort){
+        setPacketNum(deviceID);
+        currentPack = new Packet[numPackets];
+        hbPacket = new uint8_t[16];
+        rState = HEARTBEAT_WAITING;
+      };
+     uint8_t* hbPacket; //for sending data back
      void begin(long baudrate);
      void update();
      uint8_t getDeviceID() const { return deviceID; };
@@ -66,7 +94,9 @@
    private:
      const uint8_t PACKET_START = 0xF0;
      void pack(void *p);
+     void unpack();
    public:
+     uint16_t throt;
      uint16_t diodeTemp;
      uint16_t inVoltage;
      uint16_t outCurrent;
@@ -74,14 +104,16 @@
      uint8_t dutyCycle;
      uint8_t errorCode;
      AlltraxNode(Serial_ *serialPort)
- 	   : TelemetryNode(DEVICE_ALLTRAX, serialPort){};
+       : TelemetryNode(DEVICE_ALLTRAX, serialPort){};
  };
 
  class VescNode : public TelemetryNode {
    private:
      const uint8_t PACKET_START = 0xF0;
      void pack(void *p);
+     void unpack();
    public:
+     uint16_t throt;
      uint16_t fetTemp;
      uint16_t inVoltage;
      uint16_t outCurrent;
@@ -96,6 +128,7 @@
    private:
      const uint8_t PACKET_START = 0xF0;
      void pack(void *p);
+     void unpack();
    public:
      float motorTemp;
      uint32_t motorRPM;
@@ -108,6 +141,7 @@
    private:
      const uint8_t PACKET_START = 0xF0;
      void pack(void *p);
+     void unpack();
    public:
      float lat;
      float lng;
@@ -123,9 +157,10 @@
    private:
      const uint8_t PACKET_START = 0xF0;
      void pack(void *p);
+     void unpack();
    public:
      uint16_t throt;
      ThrottleNode(Serial_ *serialPort)
-       : TelemetryNode(DEVICE_THROTTLE, serialPort){};
+      : TelemetryNode(DEVICE_THROTTLE, serialPort){};
  };
  #endif
