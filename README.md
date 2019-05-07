@@ -296,9 +296,9 @@ Data points about incoming solar energy
 
 #### Solar Packing
 - Byte 0: Header (0xF0)
-- Byte 1-4: totalCurrent
-- Byte 5-8: outCurrent1
-- Byte 9-12: outCurrent2
+- Byte 1-4: outCurrent1
+- Byte 5-8: outCurrent2
+- Byte 9-12: totalCurrent
 - Byte 13: 0x00 (unused)
 - Byte 14: 0x00 (packet#)
 - Byte 15: 8-bit checksum
