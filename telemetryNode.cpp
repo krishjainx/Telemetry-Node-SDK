@@ -212,38 +212,40 @@
 
  }
 
- void GPSNode::pack(void *p){
+ void GPSIMUNode::pack(void *p){
    Packet* packets = (Packet*)(p);
+
+   // Assemble packet 1/2
+   // imu pitch, imu yaw, imu roll, num gps satellites
    packets[0].startByte=0xF0;
    uint32_t *p32_1 = (uint32_t*) (packets[0].data);
-   uint32_t *lat32 = (uint32_t*) (&lat);
-   uint32_t *lng32 = (uint32_t*) (&lng);
-   uint32_t *speed32 = (uint32_t*) (&speed);
-   p32_1[0] = lat32[0];
-   p32_1[1] = lng32[0];
-   p32_1[2] = time;
-   uint8_t *p8_1 = (uint8_t*) (&p32_1[3]);
-   p8_1[0] = numSat;
+   uint32_t *imuPitch32 = (uint32_t*) (&imuPitch);
+   uint32_t *imuRoll32 = (uint32_t*) (&imuRoll);
+   p32_1[0] = imuPitch32[0];
+   p32_1[1] = imuRoll32[0];
+   uint8_t *p8_1 = (uint8_t*) (&p32_1[2]);
+   p8_1[0] = numSatellites;
+   p8_1[0] = fix;
    packets[0].packetNum=0x00;
    packets[0].checksum = _checksum(&packets[0]);
+
+   // Assemble packet 2/2
+   // latitude, longitude, speed (knots), heading
    packets[1].startByte=0xF0;
    uint32_t *p32_2 = (uint32_t*) (packets[1].data);
-   p32_2[0] = speed32[0];
-   uint8_t* p8_2 = (uint8_t*)(&p32_2[1]);
+   uint32_t *latitude32 = (uint32_t*) (&latitude);
+   uint32_t *longitude32 = (uint32_t*) (&longitude);
+   uint32_t *speedKnots32 = (uint32_t*) (&speedKnots);
+   p32_2[0] = latitude32[0];
+   p32_2[1] = longitude32[0];
+   p32_2[2] = speedKnots32[0];
+   uint8_t* p8_2 = (uint8_t*)(&p32_2[3]);
    p8_2[0] = heading;
-   p8_2[1] = 0x00;
-   p8_2[2] = 0x00;
-   p8_2[3] = 0x00;
-   p8_2[4] = 0x00;
-   p8_2[5] = 0x00;
-   p8_2[6] = 0x00;
-   p8_2[7] = 0x00;
-   p8_2[8] = 0x00;
    packets[1].packetNum=0x01;
    packets[1].checksum = _checksum(&packets[1]);
  }
 
- void GPSNode::unpack(){
+ void GPSIMUNode::unpack(){
 
  }
 

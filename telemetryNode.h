@@ -137,19 +137,21 @@
        : TelemetryNode(DEVICE_MOTOR_BOARD, serialPort){};
  };
 
- class GPSNode : public TelemetryNode {
+ class GPSIMUNode : public TelemetryNode {
    private:
      const uint8_t PACKET_START = 0xF0;
      void pack(void *p);
      void unpack();
    public:
-     float lat;
-     float lng;
-     float speed;
-     uint8_t numSat;
+     float imuPitch;
+     float imuRoll;
+     float latitude;
+     float longitude;
+     float speedKnots;
+     uint8_t numSatellites;
+     uint8_t fix;
      uint8_t heading;
-     uint32_t time;
-     GPSNode(Serial_ *serialPort)
+     GPSIMUNode(Serial_ *serialPort)
        : TelemetryNode(DEVICE_GPS_IMU, serialPort){};
  };
 
