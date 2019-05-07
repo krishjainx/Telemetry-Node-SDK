@@ -267,3 +267,23 @@
  void ThrottleNode::unpack(){
 
  }
+
+
+void SolarNode::pack(void *p){
+  Packet* packets = (Packet*)(p);
+  packets[0].startByte = 0xF0;
+  uint32_t *p32 = (uint32_t*) (packets[0].data);
+  uint32_t *outCurrent1_32 = (uint32_t*) (&outCurrent1);
+  uint32_t *outCurrent2_32 = (uint32_t*) (&outCurrent2);
+  uint32_t *totalCurrent32 = (uint32_t*) (&totalCurrent);
+  p32[0] = outCurrent1_32[0];
+  p32[1] = outCurrent2_32[0];
+  p32[2] = totalCurrent32[0];
+  packets[0].packetNum = 0x00;
+  packets[0].checksum = _checksum(&packets[0])
+}
+
+void SolarNode::unpack(){
+
+}
+
