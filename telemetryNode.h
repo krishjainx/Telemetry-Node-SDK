@@ -42,7 +42,8 @@
    DEVICE_MOTOR_BOARD,
    DEVICE_BATTERY_BOARD,
    DEVICE_GPS_IMU,
-   DEVICE_THROTTLE
+   DEVICE_THROTTLE,
+   DEVICE_SOLAR
  };
 
  enum ReciveState {
@@ -165,4 +166,17 @@
      ThrottleNode(Serial_ *serialPort)
       : TelemetryNode(DEVICE_THROTTLE, serialPort){};
  };
- #endif
+
+class SolarNode : public SolarNode{
+  private:
+    const uint8_t PACKET_START = 0xF0;
+    void pack(void *p);
+    void unpack();
+  public:
+    float outCurrent1;
+    float outCurrent2;
+    float totalCurrent;
+    SolarNode(Serial_ *serialPort)
+     : TelemetryNode(DEVICE_SOLAR, serialPort){};
+};
+#endif

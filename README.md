@@ -31,6 +31,7 @@ Device IDs are enumerated and defined in telemetryNode.h. Current device ID's ar
 - DEVICE_BATTERY_BOARD = 0x03 (Battery board)
 - DEVICE_GPS_IMU = 0x04 (GPS/accelerometer board)
 - DEVICE_THROTTLE = 0x05 (Throttle board)
+- DEVICE_SOLAR = 0x06 (Solar Board) 
 
 ### Packet Number
 For the most part, only one packet of data is required to transmit all the necessary
@@ -114,22 +115,22 @@ ___
 The following data points will be sent from the VESC:
 #### Controller Temp (fetTemp)
 - Description: average temp of the MOSFETs on the controller in deg C
-- Size: 2 bytes _fetTemp=(fetTempH<<8)&fetTempL_
+- Size: 2 bytes _fetTemp=(fetTempH<<8)|fetTempL_
 - Encoding: (fetTemp-0x0C)(.48828125)
 
 #### Input Voltage (inVoltage)
 - Description: input voltage to controller
-- Size: 2 bytes _inVoltage=(inVoltageH<<8)&inVoltageL_
+- Size: 2 bytes _inVoltage=(inVoltageH<<8)|inVoltageL_
 - Encoding: .1025 V/bit
 
 #### Output Current (outCurrent)
 - Description: motor coil current (A)
-- Size: 2 bytes _outCurrent=(outCurrentH<<8)&outCurrentL_
+- Size: 2 bytes _outCurrent=(outCurrentH<<8)|outCurrentL_
 - Encoding: 1A/bit
 
 #### Input Current (inCurrent)
 - Description: input current from batteries
-- Size: 2 bytes _inCurrent=(inCurrentH<<8)&inCurrentL_
+- Size: 2 bytes _inCurrent=(inCurrentH<<8)|inCurrentL_
 - Encoding: 1A/Bit
 
 #### Duty Cycle (dutyCycle)
@@ -285,3 +286,33 @@ Data points to be sent from the custom motor board:
 - Byte 3-13: 0x00 (unused)
 - Byte 14: 0x00  (packet #)
 - Byte 15: 8-bit checksum
+
+___
+
+### DEVICE_SOLAR(0x06)
+Data points about incoming solar energy
+
+#### Total Output Current
+- Description: total output current from solar chargers
+- Size: 4 bytes
+- Encoding: none, standard float (little endian)
+
+#### Output Current 1 (outCurrent1)
+- Description: output current from solar charger 1
+- Size: 4 bytes
+- Encoding: none, standard float (little endian)
+
+#### Output Current 2 (outCurrent2)
+- Description: output current form solar charger 2
+- Size: 4 bytes
+- Encoding: none, standard float (little endian)
+
+#### Solar Packing
+- Byte 0: Header (0xF0)
+- Byte 1-4: outCurrent1
+- Byte 5-8: outCurrent2
+- Byte 9-12: totalCurrent
+- Byte 13: 0x00 (unused)
+- Byte 14: 0x00 (packet#)
+- Byte 15: 8-bit checksum
+
