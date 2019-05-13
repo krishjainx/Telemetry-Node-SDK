@@ -207,51 +207,64 @@ ___
 ### DEVICE_GPS_IMU (0x04)
 Data points to be sent from the GPS board from Adafruit GPS module:
 
-#### Latitude (lat)
-- Description: signed position latitude (e=positive, w=negative)
+#### Pitch (imuPitch)
+- Description: Signed pitch value from IMU in degrees
 - Size: 4 bytes
 - Encoding: none, standard float (little endian)
 
-#### Longitude (lng)
-- Description: signed position longitude (n=positive, s=negative)
+#### Roll (imuRoll)
+- Description: Signed roll value from IMU in degrees
 - Size: 4 bytes
 - Encoding: none, standard float (little endian)
+
+#### Fix Status (fix)
+- Description: Status of GPS fix. (0 = no fix, >0 = fix)
+- Size: 1 byte
+- Encoding: none, standard byte (little endian)
+
+#### Number of Satellites (numSatellites)
+- Description: Number of satellites connected
+- Size: 1 byte
+- Encoding: none, standard byte (little endian)
 
 #### Heading Angle (heading)
 - Description: mapped angle heading (0,360) -> (0,255)
 - Size: 1 byte
 - Encoding: (0,360) -> (0,255)
 
-#### Speed (speed)
+#### Latitude (latitude)
+- Description: signed position latitude (e=positive, w=negative)
+- Size: 4 bytes
+- Encoding: none, standard float (little endian)
+
+#### Longitude (longitude)
+- Description: signed position longitude (n=positive, s=negative)
+- Size: 4 bytes
+- Encoding: none, standard float (little endian)
+
+#### Speed (speedKnots)
 - Description: Speed of the boat in knots
 - Size: 4 bytes
 - Encoding: none, standard float
 
-#### Number of Satellites (numSat)
-- Description: Number of satellites connected
-- Size: 1 byte
-- Encoding: none, standard byte (little endian)
-
-#### Epoch Time (time)
-- Description: current epoch time in milliseconds
-- Size: 4 bytes
-- Encoding Standard epoch encoding (little endian)
-
 #### GPS/IMU packing
 Packet 0x00:
 - Byte 0: Header (0xF0)
-- Bytes 1-4: lat
-- Bytes 5-8: lng
-- Bytes 9-12: time
-- Byte 13: numSat
+- Bytes 1-4: imuPitch
+- Bytes 5-8: imuRoll
+- Byte 9: fix
+- Byte 10: numSatellites
+- Byte 11: heading
+- Bytes 12-13: 0x00 (unused)
 - Byte 14: 0x00 (packet#)
 - Byte 15: 8-bit Checksum
 
 Packet 0x01:
 - Byte 0: Header (0xF0)
-- Bytes 1-4: speed
-- Byte 5: heading
-- Bytes 6-13: 0x00 (unused)
+- Bytes 1-4: latitude
+- Bytes 5-8: longitude
+- Bytes 9-12: speedKnots
+- Byte 13: fix
 - Byte 14: 0x01 (packet#)
 - Byte 15: 8-bit Checksum
 

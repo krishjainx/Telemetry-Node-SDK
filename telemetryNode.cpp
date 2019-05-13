@@ -216,7 +216,7 @@
    Packet* packets = (Packet*)(p);
 
    // Assemble packet 1/2
-   // imu pitch, imu yaw, imu roll, num gps satellites
+   // imu pitch, imu yaw, imu roll, fix, num gps satellites, heading
    packets[0].startByte=0xF0;
    uint32_t *p32_1 = (uint32_t*) (packets[0].data);
    uint32_t *imuPitch32 = (uint32_t*) (&imuPitch);
@@ -224,13 +224,15 @@
    p32_1[0] = imuPitch32[0];
    p32_1[1] = imuRoll32[0];
    uint8_t *p8_1 = (uint8_t*) (&p32_1[2]);
-   p8_1[0] = numSatellites;
    p8_1[0] = fix;
+   p8_1[1] = numSatellites;
+   p8_1[2] = heading;
    packets[0].packetNum=0x00;
    packets[0].checksum = _checksum(&packets[0]);
 
    // Assemble packet 2/2
-   // latitude, longitude, speed (knots), heading
+   // latitude, longitude, speed (knots), gps fix status
+   // Sends gps fix twice to let server decide when to throw out gps data
    packets[1].startByte=0xF0;
    uint32_t *p32_2 = (uint32_t*) (packets[1].data);
    uint32_t *latitude32 = (uint32_t*) (&latitude);
@@ -240,7 +242,7 @@
    p32_2[1] = longitude32[0];
    p32_2[2] = speedKnots32[0];
    uint8_t* p8_2 = (uint8_t*)(&p32_2[3]);
-   p8_2[0] = heading;
+   p8_2[0] = fix;
    packets[1].packetNum=0x01;
    packets[1].checksum = _checksum(&packets[1]);
  }
